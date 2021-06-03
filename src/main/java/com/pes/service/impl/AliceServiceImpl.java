@@ -72,11 +72,13 @@ public class AliceServiceImpl implements AliceService {
         return procNeedRestart(request);
     }
 
-    //first msg
+    // start of setting
     public static final String NEED_SET_AIS_ACCOUNT_ID = "Укажите индивидуальный номер или скажите завершить для завершения.";
+    // without msg
     protected AliceResponse procNewSession(AliceRequest req) {
         return procNewSession(req, "");
     }
+    // with msg
     protected AliceResponse procNewSession(AliceRequest req, String prefix) {
         sessionStateService.create(req.getAliceRequestSession().getSessionId());
         return new AliceResponse(req, prefix + NEED_SET_AIS_ACCOUNT_ID);
@@ -149,11 +151,12 @@ public class AliceServiceImpl implements AliceService {
     protected boolean wantClose(AliceRequest req) {
         return Pattern.matches(NEED_CLOSE_WORD_REG, req.getAliceRequestRequest().getOriginalUtterance());
     }
-    // close
+    // close without msg
     public static final String NEED_CLOSE = "До свидания!";
     protected AliceResponse procWantClose(AliceRequest req) {
-        return  new AliceResponse(req, NEED_CLOSE, true);
+        return procNeedClose(req, "");
     }
+    // close with msg
     protected AliceResponse procNeedClose(AliceRequest req, String msg) {
         return  new AliceResponse(req, msg + NEED_CLOSE, true);
     }
