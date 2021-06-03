@@ -20,7 +20,7 @@ dependencies {
 
     compile("org.springframework.boot:spring-boot-starter-web")
     compile("org.springframework.boot:spring-boot-devtools")
-    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    //compile("org.springframework.boot:spring-boot-starter-data-jpa")
 
     compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '2.1.1.RELEASE'
 
@@ -28,7 +28,7 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
 
     compile group: 'org.modelmapper', name: 'modelmapper', version: '2.1.0'
-    runtimeOnly 'org.postgresql:postgresql'
+    //runtimeOnly 'org.postgresql:postgresql'
 }
 
 bootJar {

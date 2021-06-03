@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -18,12 +19,12 @@ import java.util.List;
 public class AISGext01ServiceTestImpl implements AISGext01Service {
     @Override
     public AISAccountCountersRes accountCounters(String account) {
+        List<AISAccountCountersResCounter> counters = new ArrayList<>();
+        counters.add(new AISAccountCountersResCounter(1L, "тип 1 счетчика", "сервис 1 счетчика", 1.0));
+        counters.add(new AISAccountCountersResCounter(2L, "тип 2 счетчика", "сервис 2 счетчика", 2.0));
         return new AISAccountCountersRes(
                 new AISResResult(0L, ""),
-                List.of(
-                        new AISAccountCountersResCounter(1L, "тип 1 счетчика", "сервис 1 счетчика", 1.0),
-                        new AISAccountCountersResCounter(2L, "тип 2 счетчика", "сервис 2 счетчика", 2.0)
-                )
+                counters
         );
     }
 
