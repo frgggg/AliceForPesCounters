@@ -59,11 +59,12 @@ public class AliceServiceImpl implements AliceService {
                     return procNeedConfirmAisAccount(request);
                 case NEED_RESTART:
                     return procNeedRestart(request);
+                case NEED_SET_COUNTER_VAL:
+                    return procNeedSetCounterVal(request);
+                case NEED_CONFIRM_COUNTER_VAL:
+                    //return procNeedConfirmCounterVal(request);
+                    break;
                 case NEED_CONFIRM_SEND:
-                    break;
-                case NEED_SET_COUNTER_VAL_ACCOUNT:
-                    break;
-                case NEED_CONFIRM_COUNTER_VAL_ACCOUNT:
                     break;
             }
         } catch (Exception e) {
@@ -105,7 +106,6 @@ public class AliceServiceImpl implements AliceService {
     public static final String CONFIRM_AIS_ACCOUNT_REG = "[Дд]а\\.*";
     public static final String CONFIRM_AIS_ACCOUNT_CONNECT_ERROR = "Не могу получить список ваших ссчетчиков.";
     public static final String CONFIRM_AIS_ACCOUNT_COUNTERS_ERROR = "У вас нет приборов.";
-    public static final String CONFIRM_AIS_ACCOUNT_RESPONSE = "Укажите показания для счетчика %s с номером %s.";
     protected AliceResponse procNeedConfirmAisAccount(AliceRequest req) {
         SessionState ss = sessionStateService.find(req.getAliceRequestSession().getSessionId());
         if(Pattern.matches(CONFIRM_AIS_ACCOUNT_REG, req.getAliceRequestRequest().getOriginalUtterance())) {
@@ -122,22 +122,73 @@ public class AliceServiceImpl implements AliceService {
             if(aisRes.getResponseObject() == null || aisRes.getResponseObject().size() == 0) { return procNewSession(req, CONFIRM_AIS_ACCOUNT_COUNTERS_ERROR); }
 
             // set counters
-            ss.setCounters(
-                    aisRes.getResponseObject().stream()
-                            .map(SessionCounter::new)
-                            .collect(Collectors.toList())
-            );
+            ss.setCounters(aisRes.getResponseObject().stream().map(SessionCounter::new).collect(Collectors.toList()));
 
             //set first counter for set value
             ss.setCurrentCounterId(ss.getCounters().get(0).getCounterId());
             sessionStateService.update(ss);
-            return new AliceResponse(req, String.format(CONFIRM_AIS_ACCOUNT_RESPONSE, ss.getCounters().get(0).getServiceTypeName(), ss.getCounters().get(0).getCounterId()));
+            return procNeedConfirmCounterVal(req, "");
         } else {
             // back to setting of ais account
             ss.setAisAccountId(null);
             sessionStateService.update(ss);
             return procNewSession(req);
         }
+    }
+
+    // proc set counter val
+    public static final String COUNTER_VALUE_PARSE_ERROR = "Не могу считать ваши показания!";
+    public static final String CRITICAL_ERROR = "Критическая ошибка!";
+    public static final String CONFIRM_COUNTER_VAL_RESPONSE = "Подтвердите, что подали для счетчика %s с номером %s следующие показания:%s. Скажите да для подтверждения и нет для повторного ввода.";
+    protected AliceResponse procNeedSetCounterVal(AliceRequest req) {
+        SessionState ss = sessionStateService.find(req.getAliceRequestSession().getSessionId());
+        Double newVal;
+        StringBuilder newValStr = new StringBuilder();
+
+        try {
+            for(String token: req.getAliceRequestRequest().getAliceRequestNlu().getTokens()) {
+                newValStr.append(token);
+            }
+            newVal = Double.valueOf(newValStr.toString());
+        } catch (Exception e) {
+            return procNeedConfirmCounterVal(req, COUNTER_VALUE_PARSE_ERROR);
+        }
+
+        SessionCounter curCounter = null;
+        for(SessionCounter sc: ss.getCounters()) {
+            if(sc.getCounterId().equals(ss.getCurrentCounterId())) {
+                curCounter = sc;
+                sc.setNewCounterValue(newVal);
+                sessionStateService.update(ss);
+                break;
+            }
+        }
+        if(curCounter == null) {
+            return procNeedClose(req, CRITICAL_ERROR);
+        }
+        return new AliceResponse(req, String.format(CONFIRM_COUNTER_VAL_RESPONSE, curCounter.getServiceTypeName(), curCounter.getCounterId(), newVal.toString()));
+    }
+
+    // proc confirm counter val
+    protected AliceResponse procNeedConfirmCounterVal(AliceRequest req) {
+        return null;
+    }
+
+    // send need set counter val
+    public static final String SET_COUNTER_VAL_RESPONSE = "Укажите показания для счетчика %s с номером %s.";
+    protected AliceResponse procNeedConfirmCounterVal(AliceRequest req, String prefix) {
+        SessionState ss = sessionStateService.find(req.getAliceRequestSession().getSessionId());
+        SessionCounter curCounter = null;
+        for(SessionCounter sc: ss.getCounters()) {
+            if(sc.getCounterId().equals(ss.getCurrentCounterId())) {
+                curCounter = sc;
+                break;
+            }
+        }
+        if(curCounter == null) {
+            return procNeedClose(req, CRITICAL_ERROR);
+        }
+        return new AliceResponse(req, prefix + String.format(SET_COUNTER_VAL_RESPONSE, curCounter.getServiceTypeName(), curCounter.getCounterId()));
     }
 
     // restart session

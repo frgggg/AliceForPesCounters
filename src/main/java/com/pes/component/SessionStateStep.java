@@ -5,7 +5,7 @@ import com.pes.model.SessionState;
 
 public enum SessionStateStep {
     NEED_SET_AIS_ACCOUNT, NEED_CONFIRM_AIS_ACCOUNT,
-    NEED_SET_COUNTER_VAL_ACCOUNT, NEED_CONFIRM_COUNTER_VAL_ACCOUNT,
+    NEED_SET_COUNTER_VAL, NEED_CONFIRM_COUNTER_VAL,
     NEED_CONFIRM_SEND,
     NEED_RESTART;
 
@@ -26,11 +26,11 @@ public enum SessionStateStep {
         }
 
         if(checkForNeedSetCounterVal(session)) {
-            return NEED_SET_COUNTER_VAL_ACCOUNT;
+            return NEED_SET_COUNTER_VAL;
         }
 
         if(checkForNeedConfirmCounterVal(session)) {
-            return NEED_CONFIRM_COUNTER_VAL_ACCOUNT;
+            return NEED_CONFIRM_COUNTER_VAL;
         }
 
         if(checkForNeedConfirmSend(session)) {
@@ -75,12 +75,17 @@ public enum SessionStateStep {
         // empty counters list
         if(checkForCountersNotExists(session)) { return false; }
 
+        boolean findCurCounter = false;
         for(SessionCounter sc: session.getCounters()) {
             if(sc.getCounterId() == null) {
                 return false;
             }
 
             if(sc.getCounterId().equals(session.getCurrentCounterId())) {
+                if(findCurCounter) {
+                    return false;
+                }
+                findCurCounter = true;
                 // check that current counter was not set or confirmed
                 if(sc.getIsNewCounterValueConfirmed() || sc.getNewCounterValue() != null) {
                     return false;
@@ -96,7 +101,7 @@ public enum SessionStateStep {
             }
         }
 
-        return true;
+        return findCurCounter;
     }
     protected static boolean checkForNeedConfirmCounterVal(SessionState session) {
         // AISAcountId is not set
@@ -104,12 +109,17 @@ public enum SessionStateStep {
         // empty counters list
         if(checkForCountersNotExists(session)) { return false; }
 
+        boolean findCurCounter = false;
         for(SessionCounter sc: session.getCounters()) {
             if(sc.getCounterId() == null) {
                 return false;
             }
 
             if(sc.getCounterId().equals(session.getCurrentCounterId())) {
+                if(findCurCounter) {
+                    return false;
+                }
+                findCurCounter = true;
                 // check that current counter was set and not confirmed
                 if(!sc.getIsNewCounterValueConfirmed() || sc.getNewCounterValue() != null) {
                     return false;
@@ -125,7 +135,7 @@ public enum SessionStateStep {
             }
         }
 
-        return true;
+        return findCurCounter;
     }
 
     protected static boolean checkForAisAccountIsNotSet(SessionState session) {
