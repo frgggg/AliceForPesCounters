@@ -37,3 +37,24 @@ bootJar {
     mainClassName = 'com.pes.AliceForPesCounters'
     version =  ''
 }
+
+jar {
+    baseName = 'FedaHerokuTest'
+    version = ''
+    enabled=true
+    manifest {
+        attributes(
+                'Main-Class': 'frg.heroku.test.FedaHerokuTest'
+        )
+    }
+}
+
+
+task stage(type: Copy, dependsOn: [clean, bootJar]) {
+    from jar.archivePath
+    into project.rootDir
+    rename {
+        'app.jar'
+    }
+}
+stage.mustRunAfter(clean)
