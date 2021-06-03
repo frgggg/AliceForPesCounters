@@ -39,12 +39,12 @@ bootJar {
 }
 
 jar {
-    baseName = 'FedaHerokuTest'
+    baseName = 'AliceForPesCounters'
     version = ''
     enabled=true
     manifest {
         attributes(
-                'Main-Class': 'frg.heroku.test.FedaHerokuTest'
+                'Main-Class': 'com.pes.AliceForPesCounters'
         )
     }
 }
