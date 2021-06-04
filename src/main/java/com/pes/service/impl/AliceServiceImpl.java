@@ -52,6 +52,7 @@ public class AliceServiceImpl implements AliceService {
 
         try {
             SessionStateStep step = SessionStateStep.fromSessionState(session);
+            log.info("step = " + step);
             switch (step) {
                 case NEED_SET_AIS_ACCOUNT:
                     return procNeedSetAisAccount(request);
@@ -62,8 +63,7 @@ public class AliceServiceImpl implements AliceService {
                 case NEED_SET_COUNTER_VAL:
                     return procNeedSetCounterVal(request);
                 case NEED_CONFIRM_COUNTER_VAL:
-                    //return procNeedConfirmCounterVal(request);
-                    break;
+                    return procNeedConfirmCounterVal(request);
                 case NEED_CONFIRM_SEND:
                     break;
             }
@@ -170,8 +170,41 @@ public class AliceServiceImpl implements AliceService {
     }
 
     // proc confirm counter val
+    public static final String CONFIRM_COUNTER_VAR_REG = "[Дд]а\\.*";
     protected AliceResponse procNeedConfirmCounterVal(AliceRequest req) {
-        return null;
+        SessionState ss = sessionStateService.find(req.getAliceRequestSession().getSessionId());
+        SessionCounter curCounter = null;
+        for(SessionCounter sc: ss.getCounters()) {
+            if(sc.getCounterId().equals(ss.getCurrentCounterId())) {
+                curCounter = sc;
+                break;
+            }
+        }
+        if(curCounter == null) {
+            return procNeedClose(req, CRITICAL_ERROR);
+        }
+
+        if(!Pattern.matches(CONFIRM_COUNTER_VAR_REG, req.getAliceRequestRequest().getOriginalUtterance())) {
+            curCounter.setIsNewCounterValueConfirmed(true);
+            sessionStateService.update(ss);
+
+            //check for another not set counter
+            for(SessionCounter sc: ss.getCounters()) {
+                if(sc.getNewCounterValue() == null) {
+                    ss.setCurrentCounterId(sc.getCounterId());
+                    sessionStateService.update(ss);
+                    return procNeedSetCounterVal(req);
+                }
+            }
+
+            return procNeedRestart(req);
+
+
+        } else {
+            curCounter.setNewCounterValue(null);
+            sessionStateService.update(ss);
+            return procNeedSetCounterVal(req);
+        }
     }
 
     // send need set counter val
