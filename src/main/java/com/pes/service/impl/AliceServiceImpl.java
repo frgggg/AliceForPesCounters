@@ -86,7 +86,7 @@ public class AliceServiceImpl implements AliceService {
     }
 
     // set ais account
-    public static final String NEED_CONFIRM_AIS_ACCOUNT_ID = "Подтвердить индивидуальный номер %s? Ответьте да или нет.";
+    public static final String NEED_CONFIRM_AIS_ACCOUNT_ID = "Подтвердить индивидуальный номер \"%s\"? Ответьте да или нет.";
     protected AliceResponse procSetAisAccountAndNeedConfirmIt(AliceRequest req) {
         StringBuilder aisAccountNumber = new StringBuilder();
         try {
@@ -140,7 +140,7 @@ public class AliceServiceImpl implements AliceService {
     // proc set counter val
     public static final String COUNTER_VALUE_PARSE_ERROR = "Не могу считать ваши показания!";
     public static final String CRITICAL_ERROR = "Критическая ошибка!";
-    public static final String CONFIRM_COUNTER_VAL_RESPONSE = "Подтвердите, что подали для счетчика %s с номером %s следующие показания:%s. Скажите да для подтверждения и нет для повторного ввода.";
+    public static final String CONFIRM_COUNTER_VAL_RESPONSE = "Подтвердите, что подали для счетчика \"%s\" с номером \"%s\" следующие показания: %s. Скажите да для подтверждения и нет для повторного ввода.";
     protected AliceResponse procNeedSetCounterVal(AliceRequest req) {
         SessionState ss = sessionStateService.find(req.getAliceRequestSession().getSessionId());
         Double newVal;
@@ -185,16 +185,18 @@ public class AliceServiceImpl implements AliceService {
             return procNeedClose(req, CRITICAL_ERROR);
         }
 
-        if(!Pattern.matches(CONFIRM_COUNTER_VAR_REG, req.getAliceRequestRequest().getOriginalUtterance())) {
+        if(Pattern.matches(CONFIRM_COUNTER_VAR_REG, req.getAliceRequestRequest().getOriginalUtterance())) {
             curCounter.setIsNewCounterValueConfirmed(true);
             sessionStateService.update(ss);
 
+            log.info("old = " + curCounter.getCounterId());
             //check for another not set counter
             for(SessionCounter sc: ss.getCounters()) {
                 if(sc.getNewCounterValue() == null) {
+                    log.info("new = " + sc.getCounterId());
                     ss.setCurrentCounterId(sc.getCounterId());
                     sessionStateService.update(ss);
-                    return procNeedSetCounterVal(req);
+                    return procSayNeedSetCounterVal(req, "");
                 }
             }
 
