@@ -73,28 +73,23 @@ public enum SessionStateStep {
 
     protected static boolean checkForNeedSetCounterVal(SessionState session) {
         // AISAcountId is not set
-        log.info("1");
         if(checkForAisAccountIsNotSet(session)) { return false; }
         // empty counters list
-        log.info("2");
         if(checkForCountersNotExists(session)) { return false; }
 
         boolean findCurCounter = false;
         for(SessionCounter sc: session.getCounters()) {
             if(sc.getCounterId() == null) {
-                log.info("3");
                 return false;
             }
 
             if(sc.getCounterId().equals(session.getCurrentCounterId())) {
                 if(findCurCounter) {
-                    log.info("4");
                     return false;
                 }
                 findCurCounter = true;
                 // check that current counter was not set or confirmed
                 if(sc.getIsNewCounterValueConfirmed() || sc.getNewCounterValue() != null) {
-                    log.info("5");
                     return false;
                 }
             } else {
@@ -103,12 +98,10 @@ public enum SessionStateStep {
                         (sc.getIsNewCounterValueConfirmed() && sc.getNewCounterValue() == null) ||
                         (!sc.getIsNewCounterValueConfirmed() && sc.getNewCounterValue() != null)
                 ) {
-                    log.info("6");
                     return false;
                 }
             }
         }
-        log.info("7 = " + findCurCounter);
         return findCurCounter;
     }
     protected static boolean checkForNeedConfirmCounterVal(SessionState session) {
@@ -118,11 +111,14 @@ public enum SessionStateStep {
         if(checkForCountersNotExists(session)) { return false; }
 
         boolean findCurCounter = false;
+        log.info("session.getCurrentCounterId() = " + session.getCurrentCounterId());
         for(SessionCounter sc: session.getCounters()) {
             if(sc.getCounterId() == null) {
                 return false;
             }
-
+            log.info("    sc.id = " + sc.getCounterId());
+            log.info("    sc.newVal = " + sc.getNewCounterValue());
+            log.info("    sc.conf = " + sc.getIsNewCounterValueConfirmed());
             if(sc.getCounterId().equals(session.getCurrentCounterId())) {
                 if(findCurCounter) {
                     return false;
