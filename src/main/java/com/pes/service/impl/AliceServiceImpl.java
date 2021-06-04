@@ -185,11 +185,12 @@ public class AliceServiceImpl implements AliceService {
             return procNeedClose(req, CRITICAL_ERROR);
         }
 
+        log.info("old = " + curCounter.getCounterId());
         if(Pattern.matches(CONFIRM_COUNTER_VAR_REG, req.getAliceRequestRequest().getOriginalUtterance())) {
             curCounter.setIsNewCounterValueConfirmed(true);
             sessionStateService.update(ss);
 
-            log.info("old = " + curCounter.getCounterId());
+            log.info("1");
             //check for another not set counter
             for(SessionCounter sc: ss.getCounters()) {
                 if(sc.getNewCounterValue() == null) {
@@ -204,6 +205,7 @@ public class AliceServiceImpl implements AliceService {
 
 
         } else {
+            log.info("1");
             curCounter.setNewCounterValue(null);
             sessionStateService.update(ss);
             return procNeedSetCounterVal(req);
