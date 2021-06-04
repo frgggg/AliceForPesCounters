@@ -125,7 +125,7 @@ public enum SessionStateStep {
                 }
                 findCurCounter = true;
                 // check that current counter was set and not confirmed
-                if(!sc.getIsNewCounterValueConfirmed() || sc.getNewCounterValue() != null) {
+                if(sc.getIsNewCounterValueConfirmed() || sc.getNewCounterValue() == null) {
                     return false;
                 }
             } else {
