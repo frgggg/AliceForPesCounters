@@ -126,6 +126,7 @@ public class AliceServiceImpl implements AliceService {
 
             //set first counter for set value
             ss.setCurrentCounterId(ss.getCounters().get(0).getCounterId());
+            ss.setIsAisAccountIdConfirmed(true);
             sessionStateService.update(ss);
             return procSayNeedSetCounterVal(req, "");
         } else {
